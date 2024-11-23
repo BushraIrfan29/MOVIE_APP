@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie App</title>
+  <!-- Favicon -->
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1179/1179068.png" type="image/png">
+  <style>
+    /* General Reset */
+    body, h1, input, button {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .search-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      flex: 1;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #e91e63;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #c2185b;
+      transform: scale(1.05);
+    }
+
+    .loading {
+      margin: 20px;
+      font-size: 18px;
+      display: none;
+      color: #e91e63;
+    }
+
+    .movies {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .movie {
+      background-color: #1e1e1e;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .movie img {
+      width: 100%;
+      border-radius: 10px;
+      height: 300px;
+      object-fit: cover;
+    }
+
+    .movie h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+    }
+
+    .movie p {
+      font-size: 14px;
+      color: #bbbbbb;
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #bbbbbb;
+    }
+
+    .footer a {
+      color: #e91e63;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Movie App 🎬</h1>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search for a movie..." />
+    <button onclick="searchMovies()">Search</button>
+  </div>
+  <div class="loading" id="loading">🔄 Searching for movies...</div>
+  <h2>Featured Movies</h2>
+  <div class="movies" id="movies"></div>
+
+  <div class="footer">
+    <p>Powered by <a href="https://www.omdbapi.com/" target="_blank">OMDb API</a> | <a href="https://github.com/BushraIrfan29?tab=repositories" target="_blank">Bushra Irfan</a></p>
+  </div>
+
+  <script>
+    const API_URL = "https://www.omdbapi.com/?i=tt3896198&apikey=e067fcaf";
+  
+    // Display initial featured movies
+    window.onload = () => {
+      fetch(`${API_URL}&s=batman`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.Response === "True") {
+            displayMovies(data.Search);
+          } else {
+            document.getElementById("movies").innerHTML = `<p>No featured movies found.</p>`;
+          }
+        })
+        .catch(err => console.error("Error fetching featured movies:", err));
+    };
+  
+    // Fetch movies based on search query
+    function searchMovies() {
+      const query = document.getElementById("searchInput").value.trim();
+      const loading = document.getElementById("loading");
+      const moviesContainer = document.getElementById("movies");
+  
+      if (!query) return alert("Please enter a movie name!");
+  
+      // Show loading spinner
+      loading.style.display = "block";
+  
+      fetch(`${API_URL}&s=${query}`)
+        .then(response => response.json())
+        .then(data => {
+          loading.style.display = "none"; // Hide loading spinner
+          if (data.Response === "True") {
+            displayMovies(data.Search);
+          } else {
+            moviesContainer.innerHTML = `<p>No results found for "${query}"</p>`;
+          }
+        })
+        .catch(err => {
+          loading.style.display = "none"; // Hide loading spinner
+          console.error("Error fetching movies:", err);
+        });
+    }
+  
+    // Display movie cards
+    function displayMovies(movies) {
+      const moviesContainer = document.getElementById("movies");
+      moviesContainer.innerHTML = movies
+        .map(
+          movie => `
+          <div class="movie" onclick="playMovie('${movie.imdbID}')">
+            <img src="${movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/200x300"}" alt="${movie.Title}" />
+            <h3>${movie.Title}</h3>
+            <p>${movie.Year}</p>
+          </div>`
+        )
+        .join("");
+    }
+  
+    // Play movie (redirect to IMDb page for simplicity)
+    function playMovie(imdbID) {
+      const url = `https://www.imdb.com/title/${imdbID}/`;
+      window.open(url, "_blank"); // Open in a new tab
+    }
+  </script>
+  
+</body>
+</html>
